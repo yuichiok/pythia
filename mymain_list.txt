@@ -1,0 +1,18 @@
+mymain01; test for main01
+mymain02; same as above with some modification.
+mymain03; same as above
+mymain04; i don’t even know why i made this. same as above.
+mymain05; again, same.
+mymain06; first file for Higgs->bbbar collision simulation.
+mymain07; creating 100 events with event listings.
+mymain08; file from Dr.Gozpinar, my savior.
+mymain09; printing stable particle.
+mymain10; printing stable particle with more clever way.
+mymain11; started jet listing :)
+mymain12; first attempt for finding invariant higgs mass.
+mymain13; finding higgs mass from mother particles of b and bbar.
+mymain14; revised 13
+mymain15; b and bbar check from original particles
+mymain16; copy and paste from main27.
+mymain17; copy of 14
+
