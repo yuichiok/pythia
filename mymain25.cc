@@ -9,33 +9,32 @@ double invariant(double,double,double,double,double,double,double,double,double,
 void drcalc(double phi1, double phi2, double y1, double y2, double *pdphi, double *pdeta, double *pdR);
 
 int main() {
-    const char *path = "/Users/Yuichi/root/macros/mytext25.txt";
-    const char *pathb = "/Users/Yuichi/root/macros/mytext25b.txt";
-    const char *pathc = "/Users/Yuichi/root/macros/mytext25c.txt";
-    const char *pathd = "/Users/Yuichi/root/macros/mytext25d.txt";
+    const char *path = "/Users/Yuichi/root/macros/mytext25/mytext25a.txt";
+    const char *pathb = "/Users/Yuichi/root/macros/mytext25/mytext25b.txt";
+    const char *pathc = "/Users/Yuichi/root/macros/mytext25/mytext25c.txt";
+    const char *pathd = "/Users/Yuichi/root/macros/mytext25/mytext25d.txt";
     
     ofstream myfile(path);
     ofstream myfileb(pathb);
     ofstream myfilec(pathc);
     ofstream myfiled(pathd);
     
-    
-  // Generator. Process selection. LHC initialization.
-  Pythia pythia;
-  pythia.readString("Beams:eCM = 13000.");
-  pythia.readString("HiggsSM:ffbar2HZ = on");
-  pythia.readString("25:onMode = off");
-  pythia.readString("25:onIfMatch = 5 -5");
-  pythia.readString("23:onMode = off");
-  pythia.readString("23:onIfMatch = 13 -13");
-  pythia.readString("PhaseSpace:pTHatMin = 0.");
-  pythia.readString("Next:numberShowInfo = 0");
-  pythia.readString("Next:numberShowProcess = 0");
-  pythia.readString("Next:numberShowEvent = 0");
-  pythia.init();
+    // Generator. Process selection. LHC initialization.
+    Pythia pythia;
+    pythia.readString("Beams:eCM = 13000.");
+    pythia.readString("HiggsSM:ffbar2HZ = on");
+    pythia.readString("25:onMode = off");
+    pythia.readString("25:onIfMatch = 5 -5");
+    pythia.readString("23:onMode = off");
+    pythia.readString("23:onIfMatch = 13 -13");
+    pythia.readString("PhaseSpace:pTHatMin = 0.");
+    pythia.readString("Next:numberShowInfo = 0");
+    pythia.readString("Next:numberShowProcess = 0");
+    pythia.readString("Next:numberShowEvent = 0");
+    pythia.init();
     
     // Common parameters for the two jet finders.
-    double etaMax   = 2.4;
+    double etaMax   = 2.9;
     double radius   = 0.4;
     double pTjetMin = 20.;
     // Exclude neutrinos (and other invisible) from study.
@@ -54,7 +53,7 @@ int main() {
     int id;
     int mom1,mom2;
     int mom1id,mom2id;
-    int jetsize,jetsizeaf;
+    int jetsize,jetsizeaf(0);
     double hm;
     double zm;
     double invm;
@@ -69,6 +68,7 @@ int main() {
     double detambar,dphimbar,dRmbar;
     double detab,dphib,dRb;
     double detabbar,dphibbar,dRbbar;
+    double pTH,pTZ,phiH,phiZ,dphiHZ,dpTHZ;
     Vec4 jet1,jet2;
     
     // Begin event loop. Generate event. Skip if error. List first one.
@@ -149,10 +149,22 @@ int main() {
                 m4 = pythia.event[i].m();
             }
             
+            if(id == 25)
+            {
+                pTH = pythia.event[i].pT();
+                phiH = pythia.event[i].phi();
+            }
+            
+            if(id == 23)
+            {
+                pTZ = pythia.event[i].pT();
+                phiZ = pythia.event[i].phi();
+            }
+            
         }//end of particle loop
         //=======================================================================
         
-        //slowJet.list();     //Initial jet list
+        slowJet.list();     //Initial jet list
         
         //Remove jet by discarding jet with dR value
         for(int j=0;j < jetsize;++j)
@@ -177,15 +189,14 @@ int main() {
             
             //removal of jet
             {
-                /*
                 if(dRm < 0.1 || dRmbar < 0.1)
                 {
                     slowJet.removeJet(foo);--foo;
                 }
-                if(!(dRb < 0.01 || dRbbar < 0.01) && !(dRm < 0.1 || dRmbar < 0.1))
+                if(!(dRb < 0.1 || dRbbar < 0.1) && !(dRm < 0.1 || dRmbar < 0.1))
                 {
                     slowJet.removeJet(foo);--foo;
-                }*/
+                }
             }
             
             //cout << "dRb = " << dRb << ", dRbbar = " << dRbbar << ", dRm = " << dRm << ", dRmbar = " << dRmbar << endl;
@@ -199,21 +210,32 @@ int main() {
             
             //counting number of times program went through
             ++foo;
+            
        }
         
         slowJet.list();     //Final jet list
         
-        //counting multiplicities of jets
-        for(int p=0;p < slowJet.sizeJet();++p)
-        {
-            cout << "jet mult = " << slowJet.multiplicity(p) << endl;
-            myfiled << setw(10) << slowJet.multiplicity(p);
-            myfiled << endl;
-        }
         
         //Calculation involving dijets
+        jetsizeaf = 0;
         if(slowJet.sizeJet() > 1)
         {
+            
+            //collecting parameters from jets
+            for(int p=0;p < slowJet.sizeJet();++p)
+            {
+                cout << "For jet" << p;
+                cout << ", jet pT = " << slowJet.pT(p);
+                cout << ", phi = " << slowJet.phi(p);
+                cout << ", y = " << slowJet.y(p) << endl;
+                
+                myfiled << setw(10) << slowJet.multiplicity(p);
+                myfiled << setw(10) << slowJet.pT(p);
+                myfiled << setw(10) << slowJet.phi(p);
+                myfiled << setw(10) << slowJet.y(p);
+                myfiled << endl;
+            }
+            
             //declearing number of jets used to calculate
             jetsizeaf = slowJet.sizeJet();
             
@@ -229,7 +251,7 @@ int main() {
                         drcalc(slowJet.phi(n),slowJet.phi(l),slowJet.y(n),slowJet.y(l),&dphi,&deta,&dR);
                     }
                     
-                    //Higgs invariant mass
+                    //Di-jet invariant mass
                     {
                         jet1 = slowJet.p(n);
                         jet2 = slowJet.p(l);
@@ -243,17 +265,24 @@ int main() {
                         myfileb << setw(10) << dphi;
                         myfileb << setw(10) << deta;
                         myfileb << setw(10) << dR;
+                        
+                        cout << "invariant mass of di-jet " << n << " and " << l << " is " << invm << endl;
+                        
                         myfileb << setw(10) << invm;
                         myfileb << endl;
                     }
-                }
-            }
-        }
+                }//end for
+            }//end for
+        }// end if
         
         //Calling function for Higgs/Z0 mass
         {
             hm = invariant(m1,m2,e1,e2,px1,px2,py1,py2,pz1,pz2);
             zm = invariant(m3,m4,e3,e4,px3,px4,py3,py4,pz3,pz4);
+            
+            dpTHZ = pTZ - pTH;
+            dphiHZ = phiZ - phiZ;
+            if(dphiHZ > M_PI) dphiHZ = 2. * M_PI - dphiHZ;
             
             cout << "px of -mu is " << px3 << " and px of +mu is " << px4 << endl;
             cout << "higgs mass from b bbar: " << hm << endl;
@@ -273,6 +302,10 @@ int main() {
             myfile << setw(10) << y3;
             myfile << setw(10) << y4;
             myfile << setw(10) << jetsizeaf;
+            myfile << setw(10) << pTH;
+            myfile << setw(10) << pTZ;
+            myfile << setw(10) << dpTHZ;
+            myfile << setw(10) << dphiHZ;
             myfile << endl;
         }
         
